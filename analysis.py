@@ -7,99 +7,85 @@ from scipy import stats
 
 # Set style for visualizations
 sns.set_style('whitegrid')
-# Load dataset (example using Titanic dataset)
-url = "https://web.stanford.edu/class/archive/cs/cs109/cs109.1166/stuff/titanic.csv"
-df = pd.read_csv(url)
+df = pd.read_csv('Pay_govt_ministry.csv')
 
 # Initial inspection
-print("Data shape:", df.shape)
-print("\nFirst 5 rows:")
-print(df.head())
-print("\nData summary:")
-print(df.info())
-print("\nDescriptive statistics:")
-print(df.describe(include='all'))
-print("\nMissing values:")
-print(df.isnull().sum())
-# Handle missing values
-# Fill age with median
-df['Age'].fillna(df['Age'].median(), inplace=True)
+# print("Data shape:", df.shape)
 
-# Drop cabin column (too many missing values)
-df.drop('Cabin', axis=1, inplace=True)
+# print("\nFirst 5 rows:")
+# print(df.head())
 
-# Drop remaining missing values (if any)
-df.dropna(inplace=True)
+# print("\nData summary:")
+# print(df.info())
+
+# print("\nDescriptive statistics:")
+# print(df.describe(include='all'))
+
+# print("\nMissing values:")
+# print(df.isnull().sum())
+
+# Extract year from the 'Year' column
+df['Year'] = df['Year'].str.extract(r'(\d{4})').astype(int)
+
+#Change all column names having (UOM:INR(IndianRupees)) to simpler names
+df.rename(columns={
+    col: col.split(' (UOM:INR(IndianRupees))')[0].strip()
+    for col in df.columns
+    if '(UOM:INR(IndianRupees))' in col
+}, inplace=True)
+
+# Drop unnecessary columns (e.g., 'Additional Info' with many NaN values)
+df.drop(columns=['Additional Info', 'Country'], inplace=True)
+
+# Standardize ministry/department names (example)
+df['Ministry Or Department'] = df['Ministry Or Department'].str.strip().str.upper()
 
 # Check for duplicates
-print("Duplicate rows:", df.duplicated().sum())
+df.drop_duplicates(inplace=True)
 
-# Handle outliers (example for Fare)
-z_scores = stats.zscore(df['Fare'])
-abs_z_scores = np.abs(z_scores)
-filtered_entries = (abs_z_scores < 3)
-df = df[filtered_entries]
+# # Handle missing values (drop rows with critical NaN values)
+df.dropna(subset=['Pay'], inplace=True)
 
-# Convert categorical variables
-df['Sex'] = df['Sex'].astype('category')
-df['Pclass'] = df['Pclass'].astype('category')
-# Univariate analysis
-plt.figure(figsize=(12, 6))
-sns.histplot(df['Age'], kde=True, bins=30)
-plt.title('Age Distribution')
-plt.show()
+# # Summary statistics
+print(df.describe())
 
-# Bivariate analysis
-plt.figure(figsize=(10, 6))
-sns.scatterplot(x='Age', y='Fare', hue='Survived', data=df)
-plt.title('Age vs Fare colored by Survival')
-plt.show()
+# # Yearly trends in Pay, DA, and HRA
+# plt.figure(figsize=(12, 6))
+# sns.lineplot(data=df, x='Year', y='Pay', label='Pay')
+# sns.lineplot(data=df, x='Year', y='Dearness Allowance', label='DA')
+# sns.lineplot(data=df, x='Year', y='House Rent Allowance', label='HRA')
+# plt.title('Yearly Trends in Pay, DA, and HRA')
+# plt.show()
 
-# Multivariate analysis
-plt.figure(figsize=(10, 8))
-sns.heatmap(df.corr(numeric_only=True), annot=True, cmap='coolwarm')
-plt.title('Correlation Matrix')
-plt.show()
-# Survival rate by gender
-survival_gender = pd.crosstab(df['Sex'], df['Survived'])
-print(survival_gender)
-chi2, p, dof, expected = stats.chi2_contingency(survival_gender)
-print(f"\nChi-square test p-value: {p:.4f}")
+# # Top 10 ministries by total pay
+# top_ministries = df.groupby('Ministry Or Department')['Pay'].sum().nlargest(10)
+# plt.figure(figsize=(10, 6))
+# sns.barplot(x=top_ministries.values, y=top_ministries.index)
+# plt.title('Top 10 Ministries by Total Pay')
+# plt.xlabel('Total Pay (INR)')
+# plt.show()
 
-# Age difference between survivors and non-survivors
-survived_age = df[df['Survived'] == 1]['Age']
-not_survived_age = df[df['Survived'] == 0]['Age']
-t_stat, p_val = stats.ttest_ind(survived_age, not_survived_age)
-print(f"\nT-test p-value: {p_val:.4f}")
+# # Correlation matrix
+# corr_matrix = df.select_dtypes(include=np.number).corr() #selects all numneric columns
+# plt.figure(figsize=(12, 8))
+# sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')
+# plt.title('Correlation Matrix')
+# plt.show()
 
-# Fare vs Pclass relationship
-fare_class = df.groupby('Pclass')['Fare'].agg(['mean', 'median', 'std'])
-print("\nFare statistics by Class:")
-print(fare_class)
-# Survival rate by class and gender
-plt.figure(figsize=(10, 6))
-sns.barplot(x='Pclass', y='Survived', hue='Sex', data=df)
-plt.title('Survival Rate by Class and Gender')
-plt.ylabel('Survival Rate')
-plt.show()
+# # Descriptive statistics for key columns
+# print(df[['Pay ', 'Dearness Allowance']].describe())
 
-# Distribution of fares by survival
-plt.figure(figsize=(10, 6))
-sns.boxplot(x='Survived', y='Fare', data=df)
-plt.title('Fare Distribution by Survival Status')
-plt.show()
+# # Hypothesis test: Compare Pay between two years (e.g., 2020 vs. 2010)
+# pay_2020 = df[df['Year'] == 2020]['Pay']
+# pay_2010 = df[df['Year'] == 2010]['Pay']
+# t_stat, p_value = stats.ttest_ind(pay_2020, pay_2010, nan_policy='omit')
+# print(f"T-statistic: {t_stat}, P-value: {p_value}")
 
-# Pairplot for numerical variables
-sns.pairplot(df[['Age', 'Fare', 'Siblings/Spouses Aboard', 'Parents/Children Aboard', 'Survived']], 
-             hue='Survived')
-plt.suptitle('Pairplot of Numerical Variables', y=1.02)
-plt.show()
-# Save cleaned data
-df.to_csv('cleaned_titanic.csv', index=False)
+# # Distribution of Pay across years
+# plt.figure(figsize=(14, 7))
+# sns.boxplot(data=df, x='Year', y='Pay')
+# plt.xticks(rotation=45)
+# plt.title('Distribution of Pay Across Years')
+# plt.show()
 
-# Document key findings
-print("\nKey Insights:")
-print("- Younger passengers had higher survival rates")
-print("- Women and children were prioritized in rescue efforts")
-print("- Higher fare classes (1st class) had better survival rates")
-print("- Strong correlation between fare and passenger class")
+# df.to_csv('cleaned_ministry_data.csv', index=False)
