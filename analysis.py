@@ -72,6 +72,15 @@ print(df.describe())
 # plt.title('Correlation Matrix')
 # plt.show()
 
+# Select numerical columns for pairplot (adjust based on your focus)
+pairplot_cols = ['Pay', 'Dearness Allowance', 'House Rent Allowance', 'Transport Allowance', 'Bonus']
+
+# Create a pairplot
+plt.figure(figsize=(15, 10))
+sns.pairplot(df[pairplot_cols], corner=True, diag_kind='kde', plot_kws={'alpha': 0.6})
+plt.suptitle('Pairwise Relationships Between Key Financial Components', y=1.02)
+plt.show()
+
 # # Descriptive statistics for key columns
 # print(df[['Pay ', 'Dearness Allowance']].describe())
 
