@@ -47,7 +47,7 @@ df.drop_duplicates(inplace=True)
 df.dropna(subset=['Pay'], inplace=True)
 
 # # Summary statistics
-print(df.describe())
+# print(df.describe())
 
 # # Yearly trends in Pay, DA, and HRA
 # plt.figure(figsize=(12, 6))
@@ -73,13 +73,13 @@ print(df.describe())
 # plt.show()
 
 # Select numerical columns for pairplot (adjust based on your focus)
-pairplot_cols = ['Pay', 'Dearness Allowance', 'House Rent Allowance', 'Transport Allowance', 'Bonus']
-
-# Create a pairplot
-plt.figure(figsize=(15, 10))
-sns.pairplot(df[pairplot_cols], corner=True, diag_kind='kde', plot_kws={'alpha': 0.6})
-plt.suptitle('Pairwise Relationships Between Key Financial Components', y=1.02)
-plt.show()
+pairplot_cols = ['Pay', 'Dearness Allowance', 'House Rent Allowance', 'Travel Allowances', 'Bonus']
+# # Create a pairplot
+# plt.figure(figsize=(15, 10))
+# sns.pairplot(df[pairplot_cols], corner=True, diag_kind='kde', plot_kws={'alpha': 0.6})
+# plt.suptitle('Pairwise Relationships Between Key Financial Components', y=1.02)
+# plt.tight_layout()
+# plt.show()
 
 # # Descriptive statistics for key columns
 # print(df[['Pay ', 'Dearness Allowance']].describe())
@@ -91,10 +91,10 @@ plt.show()
 # print(f"T-statistic: {t_stat}, P-value: {p_value}")
 
 # # Distribution of Pay across years
-# plt.figure(figsize=(14, 7))
-# sns.boxplot(data=df, x='Year', y='Pay')
-# plt.xticks(rotation=45)
-# plt.title('Distribution of Pay Across Years')
-# plt.show()
+plt.figure(figsize=(14, 7))
+sns.boxplot(data=df, x='Year', y='Pay')
+plt.xticks(rotation=45)
+plt.title('Distribution of Pay Across Years')
+plt.show()
 
 # df.to_csv('cleaned_ministry_data.csv', index=False)
