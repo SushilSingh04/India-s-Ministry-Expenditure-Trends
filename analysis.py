@@ -97,4 +97,4 @@ plt.xticks(rotation=45)
 plt.title('Distribution of Pay Across Years')
 plt.show()
 
-df.to_csv('cleaned_ministry_data.csv', index=False)
+df.to_csv("cleaned_ministry_data", index = False)
